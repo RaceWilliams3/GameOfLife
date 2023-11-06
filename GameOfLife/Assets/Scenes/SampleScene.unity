@@ -240,8 +240,8 @@ MonoBehaviour:
   cellCount_y: 100
   cellPrefab: {fileID: 3292592895275953145, guid: d33166c0a43979f4bbf88a54d6c72c71, type: 3}
   parent: {fileID: 1391468660}
-  updateTime: 0.1
-  spawnChance: 40
+  updateTime: 0
+  spawnChance: 30
 --- !u!4 &1391468660
 Transform:
   m_ObjectHideFlags: 0

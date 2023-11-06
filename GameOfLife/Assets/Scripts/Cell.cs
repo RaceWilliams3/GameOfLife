@@ -13,6 +13,9 @@ public class Cell : MonoBehaviour
 
     public SpriteRenderer sr;
 
+    [SerializeField]
+    private int stepsAlive = 0;
+
     private void Awake()
     {
         sr.color = isCellAlive ? aliveColor : deadColor;
@@ -30,13 +33,19 @@ public class Cell : MonoBehaviour
 
     public void UpdateCell()
     {
+        if (isCellAlive)
+        {
+            stepsAlive++;
+            sr.color = new Color((float)stepsAlive / 120, 0, (float)stepsAlive / 10);
+        }
         if (markedAlive)
         {
-            ActivateCell();
+            ActivateCell();       
         }
         if (markedDead)
         {
             DeactivateCell();
+            stepsAlive = 0;
         }
     }
 

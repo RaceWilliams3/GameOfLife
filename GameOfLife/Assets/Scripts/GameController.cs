@@ -13,8 +13,16 @@ public class GameController : MonoBehaviour
     private float lastUpdated = 0;
 
     private bool running = false;
+    private int stepCount = 0;
 
     public int spawnChance;
+
+
+    float avgPop = 0f;
+    int finalCount = 0;
+    int stepsToDie = 0;
+
+    bool displayedStats = true;
 
     private void Awake()
     {
@@ -22,36 +30,124 @@ public class GameController : MonoBehaviour
     }
 
 
-    private void Update()
-    {
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            running = true;
-        }
-
-        if (Time.time - lastUpdated > updateTime && running == true)
-        {
-            UpdateCells();
-            lastUpdated = Time.time;
-        }
-    }
-
     private void Start()
     {
         for (int i = 0; i < cells.Length; i++)
         {
             for (int j = 0; j < cells[i].Length; j++)
             {
-                if ((int)Random.Range(0,100) < spawnChance)
+                if ((int)Random.Range(0, 100) < spawnChance)
                 {
                     cells[i][j].MarkAlive();
                     cells[i][j].UpdateCell();
                 }
-                
+
             }
         }
     }
+
+    private void Update()
+    {
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            running = !running;
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ResetBoard();
+        }
+
+        if (stepCount >= 1000)
+        {
+            stepsToDie = 0;
+            avgPop = avgPop / (float)stepCount;
+            running = false;
+            displayedStats = false;
+            finalCount = amountAlive();
+            stepCount = 0;
+            ScreenCapture.CaptureScreenshot("SpawnChance-" + spawnChance.ToString() + ".png");
+        }
+
+        if (running == false && displayedStats == false)
+        {
+            Debug.Log("Spawn Chance: " + spawnChance.ToString() + "\nAverage Population: " + avgPop.ToString() + "\nFinal Count: " + finalCount.ToString() + "\n Time to Die: " + stepsToDie.ToString());
+            displayedStats = true;
+        }
+
+        if (Time.time - lastUpdated > updateTime && running == true)
+        {
+            UpdateCells();
+            lastUpdated = Time.time;
+            stepCount++;
+            avgPop += amountAlive();
+
+
+            if (checkForDead() == true)
+            {
+                stepsToDie = stepCount;
+                finalCount = 0;
+                avgPop = avgPop / (float)stepCount;
+                running = false;
+                displayedStats = false;
+                ScreenCapture.CaptureScreenshot("SpawnChance-" + spawnChance.ToString() + ".png");
+            }
+        }
+    }
+
+    private void ResetBoard()
+    {
+        stepCount = 0;
+        avgPop = 0f;
+        finalCount = 0;
+        stepsToDie = 0;
+
+        for (int i = 0; i < cells.Length; i++)
+        {
+            for (int j = 0; j < cells[i].Length; j++)
+            {
+                cells[i][j].MarkDead();
+                cells[i][j].UpdateCell();
+
+                if ((int)Random.Range(0, 100) < spawnChance)
+                {
+                    cells[i][j].MarkAlive();
+                    cells[i][j].UpdateCell();
+                }
+
+            }
+        }
+    }
+
+    private bool checkForDead()
+    {
+        bool allDead = true;
+        if (amountAlive() > 0)
+        {
+            allDead = false;
+        }
+        return allDead;
+    }
+
+    private int amountAlive()
+    {
+        int living = 0;
+
+        for (int i = 0; i < cells.Length; i++)
+        {
+            for (int j = 0; j < cells[i].Length; j++)
+            {
+                if (cells[i][j].isCellAlive)
+                {
+                    living++;
+                }
+            }
+        }
+        return living;
+    }
+
+    
 
 
     private void CreateCells()
@@ -152,4 +248,27 @@ public class GameController : MonoBehaviour
             }
         }
     }
+
+
+    private float checkAverageLiving()
+    {
+        float livingCellNum = 0;
+        float cellNum = 0;
+
+        for (int i = 0; i < cells.Length; i++)
+        {
+            for (int j = 0; j < cells[i].Length; j++)
+            {
+                if (cells[i][j].isCellAlive)
+                {
+                    livingCellNum++;
+                }
+                cellNum++;
+
+            }
+        }
+
+        return livingCellNum / cellNum;
+    }
+
 }
